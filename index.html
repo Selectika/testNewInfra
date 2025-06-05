@@ -36,14 +36,15 @@
         const ref = data.referenceItem;
         const items = data.items.slice(0, 5);
 
-        let html = `
-          <h3>Reference Item</h3>
-          <a href="${ref.page_url}" target="_blank">
-            <img src="${ref.images[0].url}" width="200"><br>${ref.item_id}
-          </a>
-          <h3>Recommended Items</h3>
-          <div id="carousel">
-        `;
+        let html = '';
+        // `
+        //   <h3>Reference Item</h3>
+        //   <a href="${ref.page_url}" target="_blank">
+        //     <img src="${ref.images[0].url}" width="200"><br>${ref.item_id}
+        //   </a>
+        //   <h3>Recommended Items</h3>
+        //   <div id="carousel">
+        // `;
 
         for (const item of items) {
           html += `
