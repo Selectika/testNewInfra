@@ -1,69 +1,151 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Item Viewer</title>
+  <title>Selectika Viewer</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    input, button { margin: 5px 0; padding: 8px; width: 300px; }
-    #carousel img { width: 150px; height: auto; cursor: pointer; }
-    #carousel div { display: inline-block; margin: 10px; text-align: center; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    input, button {
+      margin: 5px 0;
+      padding: 8px;
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+    }
+
+    #carousel-wrapper {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    #carousel {
+      display: flex;
+      transition: transform 0.3s ease-in-out;
+      gap: 10px;
+    }
+
+    .carousel-item {
+      flex: 0 0 25%; /* 4 items per view */
+      text-align: center;
+    }
+
+    .carousel-item img {
+      width: 100%;
+      max-width: 150px;
+      height: auto;
+      display: block;
+      margin: auto;
+      border-radius: 8px;
+    }
+
+    .carousel-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    button.carousel-arrow {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    a {
+      color: #0077cc;
+      text-decoration: none;
+    }
+
+    h3 {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <h2>Item Viewer</h2>
-  <input type="text" id="itemId" placeholder="Enter Item ID"><br>
-  <input type="text" id="apiKey" placeholder="Enter API Key"><br>
-  <button onclick="fetchItem()">Submit</button>
+  <h2>Selectika Item Viewer</h2>
+  <input type="text" id="itemId" placeholder="Enter Item ID">
+  <input type="text" id="apiKey" placeholder="Enter API Key">
+  <button onclick="fetchItem()">Fetch</button>
 
-  <div id="result" style="margin-top: 20px;"></div>
+  <div id="result"></div>
 
-  <script>
-    async function fetchItem() {
-      const itemId = document.getElementById('itemId').value;
-      const apiKey = document.getElementById('apiKey').value;
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = "Loading...";
+<script>
+  let carouselIndex = 0;
 
-      try {
-        const res = await fetch(`https://new.selectika-new-infrastructure.selectika.com/ask/${itemId}/sbi`, {
-          headers: { 'Authorization': `Bearer ${apiKey}` }
-        });
+  async function fetchItem() {
+    const itemId = document.getElementById('itemId').value;
+    const apiKey = document.getElementById('apiKey').value;
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = "Loading...";
 
-        if (!res.ok) throw new Error("Request failed");
-        const data = await res.json();
+    try {
+      const res = await fetch(`https://new.selectika-new-infrastructure.selectika.com/ask/${itemId}/sbi`, {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      });
 
-        const ref = data.referenceItem;
-        const items = data.items.slice(0, 5);
+      if (!res.ok) throw new Error("Request failed");
+      const data = await res.json();
 
-        let html = '';
-        // `
-        //   <h3>Reference Item</h3>
-        //   <a href="${ref.page_url}" target="_blank">
-        //     <img src="${ref.images[0].url}" width="200"><br>${ref.item_id}
-        //   </a>
-        //   <h3>Recommended Items</h3>
-        //   <div id="carousel">
-        // `;
+      const ref = data.items.referenceItem;
+      const items = data.items.items.slice(0, 10); // 10 max to scroll through
 
-        for (const item of items) {
-          html += `
-            <div>
-              <a href="${item.page_url}" target="_blank">
-                <img src="${item.images[0].url}">
-              </a>
-              <div>${item.item_id}</div>
-            </div>
-          `;
-        }
+      let html = `
+        <h3>Reference Item</h3>
+        <a href="${ref.page_url}" target="_blank">
+          <img src="${ref.images?.[0]?.url || ''}" width="200"><br>${ref.item_id || ''}
+        </a>
+        <h3>Recommended Items</h3>
+        <div id="carousel-wrapper">
+          <div id="carousel">
+      `;
 
-        html += "</div>";
-        resultDiv.innerHTML = html;
-
-      } catch (err) {
-        resultDiv.innerHTML = "Error: " + err.message;
+      for (const item of items) {
+        html += `
+          <div class="carousel-item">
+            <a href="${item.page_url}" target="_blank">
+              <img src="${item.images?.[0]?.url || ''}">
+            </a>
+            <div>${item.item_id}</div>
+          </div>
+        `;
       }
+
+      html += `
+          </div>
+        </div>
+        <div class="carousel-controls">
+          <button class="carousel-arrow" onclick="scrollCarousel(-1)">←</button>
+          <button class="carousel-arrow" onclick="scrollCarousel(1)">→</button>
+        </div>
+      `;
+
+      resultDiv.innerHTML = html;
+      carouselIndex = 0;
+
+    } catch (err) {
+      resultDiv.innerHTML = "Error: " + err.message;
     }
-  </script>
+  }
+
+  function scrollCarousel(direction) {
+    const carousel = document.getElementById('carousel');
+    const itemWidth = carousel.querySelector('.carousel-item')?.offsetWidth + 10 || 0;
+    carouselIndex += direction;
+    const maxIndex = carousel.children.length - 4;
+
+    if (carouselIndex < 0) carouselIndex = 0;
+    if (carouselIndex > maxIndex) carouselIndex = maxIndex;
+
+    carousel.style.transform = `translateX(-${carouselIndex * itemWidth}px)`;
+  }
+</script>
+
 </body>
 </html>
