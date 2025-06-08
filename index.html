@@ -1,163 +1,270 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Selectika Viewer</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Selectika Viewer</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+        max-width: 900px;
+        margin: auto;
+      }
 
-    input, button {
-      margin: 5px 0;
-      padding: 8px;
-      width: 100%;
-      max-width: 400px;
-      box-sizing: border-box;
-    }
+      input,
+      select,
+      button {
+        margin: 5px 0;
+        padding: 8px;
+        width: 100%;
+        max-width: 400px;
+        box-sizing: border-box;
+      }
 
-    #carousel-wrapper {
-      position: relative;
-      overflow: hidden;
-      width: 100%;
-    }
+      #carousel-wrapper {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+      }
 
-    #carousel {
-      display: flex;
-      transition: transform 0.3s ease-in-out;
-      gap: 10px;
-    }
+      #carousel {
+        display: flex;
+        transition: transform 0.3s ease-in-out;
+        gap: 10px;
+      }
 
-    .carousel-item {
-      flex: 0 0 25%; /* 4 items per view */
-      text-align: center;
-    }
+      .carousel-item {
+        flex: 0 0 25%;
+        text-align: center;
+      }
 
-    .carousel-item img {
-      width: 100%;
-      max-width: 150px;
-      height: auto;
-      display: block;
-      margin: auto;
-      border-radius: 8px;
-    }
+      .carousel-item img {
+        width: 100%;
+        max-width: 150px;
+        height: auto;
+        display: block;
+        margin: auto;
+        border-radius: 8px;
+      }
 
-    .carousel-controls {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-    }
+      .carousel-controls {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+      }
 
-    button.carousel-arrow {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 8px 12px;
-      cursor: pointer;
-    }
+      button.carousel-arrow {
+        background: #eee;
+        border: 1px solid #ccc;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
 
-    a {
-      color: #0077cc;
-      text-decoration: none;
-    }
+      a {
+        color: #0077cc;
+        text-decoration: none;
+      }
 
-    h3 {
-      margin-top: 20px;
-    }
-  </style>
-</head>
-<body>
-  <h2>Selectika Item Viewer</h2>
-  <input type="text" id="itemId" placeholder="Enter Item ID">
-  <input type="text" id="apiKey" placeholder="Enter API Key">
-  <button onclick="fetchItem()">Fetch</button>
+      h3 {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Selectika Item Viewer</h2>
 
-  <div id="result"></div>
+    <input type="text" id="itemId" placeholder="Enter Item ID" />
+    <input type="text" id="apiKey" placeholder="Enter API Key" />
 
-<script>
-  let carouselIndex = 0;
+    <input
+      type="text"
+      id="retailerSearch"
+      placeholder="Search or select retailer..."
+      oninput="filterRetailers(this.value)"
+    />
+    <select id="retailerDropdown" size="6" onchange="selectRetailer(this)"></select>
 
-async function fetchItem() {
-  const itemId = document.getElementById('itemId').value;
-  const apiKey = document.getElementById('apiKey').value;
-  const resultDiv = document.getElementById('result');
-  resultDiv.innerHTML = "Loading...";
+    <button onclick="fetchItem()">Fetch</button>
 
-  try {
-    const res = await fetch(`https://new.selectika-new-infrastructure.selectika.com/ask/${itemId}/sbi`, {
-      headers: { 'Authorization': `Bearer ${apiKey}` }
-    });
+    <div id="result"></div>
 
-    if (!res.ok) throw new Error("Request failed");
-    const data = await res.json();
+    <script>
+      const retailers = [
+        '7forallmankind.com',
+        '@slk',
+        'aldoshoes.co.il',
+        'algolia',
+        'apricoat.com',
+        'bagir-il.com',
+        'blackandwhiteisrael.co.il',
+        'bostonproper.com',
+        'coco',
+        'crewclothing.co.uk',
+        'egoshoes.com',
+        'endclothing.com',
+        'flannels.com',
+        'gali.co.il',
+        'globalonline.co.il',
+        'golbary.co.il',
+        'golf-il.co.il',
+        'golfkids.co.il',
+        'hoodies',
+        'housemen.co.il',
+        'inter-jeans.co.il',
+        'interval-intimates.myshopify.com',
+        'intima-il.co.il',
+        'isabelle-il.myshopify.com',
+        'jdsports.co.il',
+        'kennethcole.com',
+        'kennethcole2.myshopify.com',
+        'kiko',
+        'leecooper.co.il',
+        'lippioutdoor.myshopify.com',
+        'love-love.com',
+        'mashbir',
+        'mayanegri',
+        'megasport.co.il',
+        'miainspiration.myshopify.com',
+        'nautica',
+        'nautica.com.co',
+        'nauticahome.co.il',
+        'nauticamexico.com',
+        'nine-west.co.il',
+        'nobodyschild.com',
+        'renuar',
+        'reserved-il.com',
+        'rinazin',
+        'runningbalboa.com',
+        'shein-india',
+        'shoester.co.il',
+        'simplylove.com',
+        'speedo.co.il',
+        'stepin.co.il',
+        'story',
+        'storyonline.co.il',
+        'TestWiz',
+        'timberland',
+        'twenty',
+        'urbanica',
+        'usc.co.uk',
+        'voyado',
+        'weekendoffender.com',
+        'weshoes.co.il',
+        'wolfandbadger.com',
+      ];
 
-    const ref = data.items.referenceItem;
-    const items = data.items.items.slice(0, 10); // carousel items
+      function populateRetailerDropdown() {
+        const dropdown = document.getElementById('retailerDropdown');
+        dropdown.innerHTML = '';
+        retailers.forEach((name) => {
+          const option = document.createElement('option');
+          option.value = name;
+          option.textContent = name;
+          dropdown.appendChild(option);
+        });
+      }
+      //commenting in order to have something to commit
 
-    let html = `<h3>Reference Item</h3>`;
+      function filterRetailers(query) {
+        const dropdown = document.getElementById('retailerDropdown');
+        dropdown.innerHTML = '';
+        retailers
+          .filter((name) => name.toLowerCase().includes(query.toLowerCase()))
+          .forEach((name) => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            dropdown.appendChild(option);
+          });
+      }
 
-    if (ref) {
-      const refImg = ref.images?.[0]?.url || '';
-      const refUrl = ref.page_url || '#';
-      const refId = ref.item_id || '';
+      function selectRetailer(dropdown) {
+        document.getElementById('retailerSearch').value = dropdown.value;
+      }
 
-      html += `
-        <a href="${refUrl}" target="_blank">
-          <img src="${refImg}" width="200" style="border-radius:8px;"><br>
-          ${refId}
-        </a>
-      `;
-    }
+      let carouselIndex = 0;
 
-    html += `
-      <h3>Recommended Items</h3>
-      <div id="carousel-wrapper">
-        <div id="carousel">
-    `;
+      async function fetchItem() {
+        const itemId = document.getElementById('itemId').value;
+        const apiKey = document.getElementById('apiKey').value;
+        const retailer = document.getElementById('retailerSearch').value;
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'Loading...';
 
-    for (const item of items) {
-      html += `
-        <div class="carousel-item">
-          <a href="${item.page_url}" target="_blank">
-            <img src="${item.images?.[0]?.url || ''}">
-          </a>
-          <div>${item.item_id}</div>
-        </div>
-      `;
-    }
+        try {
+          const res = await fetch(
+            `https://new.selectika-new-infrastructure.selectika.com/ask/${retailer}/${itemId}/sbi`,
+            {
+              headers: { Authorization: `Bearer ${apiKey}` },
+            }
+          );
 
-    html += `
-        </div>
-      </div>
-      <div class="carousel-controls">
-        <button class="carousel-arrow" onclick="scrollCarousel(-1)">←</button>
-        <button class="carousel-arrow" onclick="scrollCarousel(1)">→</button>
-      </div>
-    `;
+          if (!res.ok) throw new Error('Request failed');
+          const data = await res.json();
 
-    resultDiv.innerHTML = html;
-    carouselIndex = 0;
+          const ref = data.referenceItem;
+          const items = data.items.slice(0, 10);
 
-  } catch (err) {
-    resultDiv.innerHTML = "Error: " + err.message;
-  }
-}
+          let html = `<h3>Reference Item</h3>`;
 
+          if (ref) {
+            const refImg = ref.images?.[0]?.url || '';
+            const refUrl = ref.page_url || '#';
+            const refId = ref.item_id || '';
+            html += `
+            <a href="${refUrl}" target="_blank">
+              <img src="${refImg}" width="200" style="border-radius:8px;"><br>
+              ${refId}
+            </a>
+          `;
+          }
 
-  function scrollCarousel(direction) {
-    const carousel = document.getElementById('carousel');
-    const itemWidth = carousel.querySelector('.carousel-item')?.offsetWidth + 10 || 0;
-    carouselIndex += direction;
-    const maxIndex = carousel.children.length - 4;
+          html += `
+          <h3>Recommended Items</h3>
+          <div id="carousel-wrapper">
+            <div id="carousel">
+        `;
 
-    if (carouselIndex < 0) carouselIndex = 0;
-    if (carouselIndex > maxIndex) carouselIndex = maxIndex;
+          for (const item of items) {
+            html += `
+            <div class="carousel-item">
+              <a href="${item.page_url}" target="_blank">
+                <img src="${item.images?.[0]?.url || ''}">
+              </a>
+              <div>${item.item_id}</div>
+            </div>
+          `;
+          }
 
-    carousel.style.transform = `translateX(-${carouselIndex * itemWidth}px)`;
-  }
-</script>
+          html += `
+            </div>
+          </div>
+          <div class="carousel-controls">
+            <button class="carousel-arrow" onclick="scrollCarousel(-1)">←</button>
+            <button class="carousel-arrow" onclick="scrollCarousel(1)">→</button>
+          </div>
+        `;
 
-</body>
+          resultDiv.innerHTML = html;
+          carouselIndex = 0;
+        } catch (err) {
+          resultDiv.innerHTML = 'Error: ' + err.message;
+        }
+      }
+
+      function scrollCarousel(direction) {
+        const carousel = document.getElementById('carousel');
+        const itemWidth = carousel.querySelector('.carousel-item')?.offsetWidth + 10 || 0;
+        carouselIndex += direction;
+        const maxIndex = carousel.children.length - 4;
+
+        if (carouselIndex < 0) carouselIndex = 0;
+        if (carouselIndex > maxIndex) carouselIndex = maxIndex;
+
+        carousel.style.transform = `translateX(-${carouselIndex * itemWidth}px)`;
+      }
+
+      window.onload = populateRetailerDropdown;
+    </script>
+  </body>
 </html>
