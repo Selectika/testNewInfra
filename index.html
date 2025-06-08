@@ -190,11 +190,7 @@
 
         try {
           const res = await fetch(
-            `https://new.selectika-new-infrastructure.selectika.com/ask/${retailer}/${itemId}/sbi`,
-            {
-              headers: { Authorization: `Bearer ${apiKey}` },
-            }
-          );
+            `https://new.selectika-new-infrastructure.selectika.com/ask/${retailer}/${itemId}/sbi`);
 
           if (!res.ok) throw new Error('Request failed');
           const data = await res.json();
