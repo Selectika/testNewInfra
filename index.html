@@ -195,8 +195,8 @@
           if (!res.ok) throw new Error('Request failed');
           const data = await res.json();
 
-          const ref = data.items.referenceItem;
-          const items = data.items.items.slice(0, 10);
+          const ref = data.referenceItem;
+          const items = data.items.slice(0, 10);
 
           let html = `<h3>Reference Item</h3>`;
 
